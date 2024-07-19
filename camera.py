@@ -1,7 +1,6 @@
 from time import sleep
 from picamera2 import Picamera2
-camera = Picamera2()
-
+from datetime import datetime
 
 # Ignition
 class Camera: 
@@ -92,4 +91,4 @@ class Camera:
 if __name__ == '__main__':
     test = Camera()
     test.set_up()
-    test.capture_photo('/home/pi/SCAMPI/Sensors/photo1.jpg')
+    test.capture_photo(f'/home/pi/SCAMPI/Sensors/photo{datetime.now()}.jpg')
