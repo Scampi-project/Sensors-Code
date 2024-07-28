@@ -1,8 +1,16 @@
+#Authors : Guillaume Soulier(manage_leds) Benjamin PONTY(transition to class code,reduce_temperature(),reduce_luminosity())
+
 import RPi.GPIO as GPIO
 from datetime import datetime
 import time
+import sys
+sys.path.insert(1,"/home/pi/SCAMPI/Management") #Utils is in another folder have to give the path
+from Utils import Logger
 class Led_panel:
-    def __init__(self):
+    def __init__(self,temperature):#should add the temperature from the aquarium
+        self.logger = Logger()
+        self.temp = temperature
+        self.human_luminosity_control = False
         GPIO.setmode(GPIO.BCM)
         #self.gpio_luminosity_pin = 18  # Pin for the photocell that checks if LEDs are working
         self.gpio_day_led_pin = 17     # Pin for the Day LED transistor
@@ -17,29 +25,30 @@ class Led_panel:
         if 8 <= self.current_hour < 20:  # Between 8am and 8pm
             GPIO.output(self.gpio_day_led_pin, GPIO.HIGH)  # Turn on Day LED
 
-            if GPIO.input(self.gpio_luminosity_pin) == GPIO.LOW:  # If low luminosity
+            if GPIO.input(self.gpio_luminosity_pin) == GPIO.LOW and self.temp<26 and self.human_luminosity_control == False:  # If low luminosity
                 GPIO.output(self.gpio_emergency_led_pin, GPIO.HIGH)  # Turn on Emergency LED
+                self.logger.log_info("power_operations","Emergency LED turn ON, luminosity is too low")
             else:
                 GPIO.output(self.gpio_emergency_led_pin, GPIO.LOW) # Turn off Emergency LED
-
+                self.logger.log_info("power_operations"," luminosity is fine")
         else:
             GPIO.output(self.gpio_day_led_pin, GPIO.LOW)   # Turn off Day LED
             GPIO.output(self.gpio_emergency_led_pin, GPIO.LOW) # Turn off Emergency LED
-    def led_temperature_control(self,temperature, percentage=None,duration=120):
-        if percentage == None: #if the temperature is too high, so not a request from the user 
-            while temperature>26: 
-                    try :
-                        #lowering luminosity of the led panel by half
-                        GPIO.output(self.gpio_day_led_pin, GPIO.HIGH)
-                        time.sleep(0.005)
-                        GPIO.output(self.gpio_day_led_pin, GPIO.LOW)
-                        time.sleep(0.005)
-                    except KeyboardInterrupt:
-                        temperature = 25
-                        GPIO.cleanup()
-        else:
+    def reduce_temperature(self,temperature):
+        while temperature>26.1: # 0.1 in more to make sure that the condition for the emergency led isn't met
+                try :
+                    #lowering luminosity of the led panel by half
+                    GPIO.output(self.gpio_day_led_pin, GPIO.HIGH)
+                    time.sleep(0.005)
+                    GPIO.output(self.gpio_day_led_pin, GPIO.LOW)
+                    time.sleep(0.005)
+                except KeyboardInterrupt:
+                    temperature = 25
+                    GPIO.cleanup()
+    def reduce_luminosity(self,percentage=100,duration=120):
             self.time = time.time()
-            # reduce the luminosity with the % wanted
+            self.human_luminosity_control = True
+            # reduce the luminosity by the % wanted
             while time.time()<self.time+duration:
                 try :
                     GPIO.output(self.gpio_day_led_pin, GPIO.HIGH)
@@ -54,13 +63,25 @@ class Led_panel:
             
         #GPIO.cleanup() have to cleanup led if during the shutdown sequence
 if __name__ == "__main__":
-    test = Led_panel()
-    test.led_temperature_control(15, 100, 5)
+    test = Led_panel(15)
+    test.reduce_luminosity(100, 5)
     print("80%")
-    test.led_temperature_control(15, 80, 5)
+    test.reduce_luminosity(80, 5)
     print("60%")
-    test.led_temperature_control(15, 60, 5)
+    test.reduce_luminosity(60, 5)
     print("40%")
-    test.led_temperature_control(15, 40, 5)
+    test.reduce_luminosity(40, 5)
     print("20%")
-    test.led_temperature_control(15, 20, 5)
+    test.reduce_luminosity(20, 5)
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+        
+    
