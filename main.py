@@ -1,3 +1,5 @@
+#Author : Guillaume SOULIER, will not use this main program
+#Used certain part for the new main program
 import os
 import time
 from datetime import datetime
