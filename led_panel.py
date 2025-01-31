@@ -11,14 +11,24 @@ class Led_panel:
         self.logger = Logger()
         self.human_luminosity_control = False
         GPIO.setmode(GPIO.BCM)
-        self.gpio_luminosity_pin = 18  # Pin for the photocell that checks if LEDs are working
-        self.gpio_day_led_pin = 1     # Pin for the Day LED transistor
+        self.gpio_luminosity_pin = 11  # Pin for the photocell that checks if LEDs are working
+        self.gpio_day_led_pin = 13     # Pin for the Day LED transistor
+        self.gpio_day_led_pin_2 = 15
+        self.gpio_day_led_pin_3 = 16
+        self.gpio_day_led_pin_4 = 18
         self.gpio_emergency_led_pin = 23    # Pin for the Emergency LED transistor
         GPIO.setup(self.gpio_luminosity_pin, GPIO.IN)  # Input mode for LDR
-        GPIO.setup(self.gpio_day_led_pin, GPIO.OUT)     # Output mode for Day LED
+        GPIO.setup(self.gpio_day_led_pin, GPIO.OUT)
+        GPIO.setup(self.gpio_day_led_pin_2, GPIO.OUT)
+        GPIO.setup(self.gpio_day_led_pin_3, GPIO.OUT)       # Output mode for Day LED
+        GPIO.setup(self.gpio_day_led_pin_4, GPIO.OUT) 
         GPIO.setup(self.gpio_emergency_led_pin, GPIO.OUT)   # Output mode for Emergency LED
     def turn_on(self):
         GPIO.output(self.gpio_day_led_pin, GPIO.HIGH)  # Turn on Day LED
+        GPIO.output(self.gpio_day_led_pin_2, GPIO.HIGH)
+        GPIO.output(self.gpio_day_led_pin_3, GPIO.HIGH)
+        GPIO.output(self.gpio_day_led_pin_4, GPIO.HIGH)
+    def check_luminosity(self,temp):
     def check_luminosity(self,temp):
         if GPIO.input(self.gpio_luminosity_pin) == GPIO.LOW and temp<26 and self.human_luminosity_control == False:  # If low luminosity have to emmit an alert 
             GPIO.output(self.gpio_emergency_led_pin, GPIO.HIGH)  # Turn on Emergency LED                                    But have to check if can't add a luminosity sensor
